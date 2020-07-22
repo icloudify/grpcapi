@@ -6,6 +6,7 @@ import (
 	"github.com/ravindra031/grpcapi/calculator/calculatorpb"
 	"google.golang.org/grpc"
 	"log"
+	"time"
 )
 
 func main() {
@@ -17,8 +18,9 @@ func main() {
 
 	defer conn.Close()
 	c := calculatorpb.NewCalculatorServiceClient(conn)
-	doUnary(c)
-	doServerStreaming(c)
+	//doUnary(c)
+	//doServerStreaming(c)
+	doClientStreaming(c)
 
 }
 
@@ -45,7 +47,7 @@ func doServerStreaming(c calculatorpb.CalculatorServiceClient) {
 		log.Fatal("Could not connect to grpc!", err)
 	}
 
-	for  {
+	for {
 		resStr, err := res.Recv()
 		if err != nil {
 			log.Fatal("Could not find result!", err)
@@ -53,4 +55,43 @@ func doServerStreaming(c calculatorpb.CalculatorServiceClient) {
 
 		fmt.Printf("Prime decomposition factor of %+v is %+v\n", req.Number, resStr.PrimeFactor)
 	}
+}
+func doClientStreaming(c calculatorpb.CalculatorServiceClient) {
+	fmt.Printf("Average function was invoked with a streaming request\n")
+	stream, err := c.ComputeAverage(context.Background())
+	if err != nil {
+		log.Fatal("Could not connect to grpc!", err)
+	}
+
+	request := []*calculatorpb.ComputeAverageRequest{
+		&calculatorpb.ComputeAverageRequest{
+			Number: 1,
+		},
+		&calculatorpb.ComputeAverageRequest{
+			Number: 2,
+		},
+		&calculatorpb.ComputeAverageRequest{
+			Number: 3,
+		},
+		&calculatorpb.ComputeAverageRequest{
+			Number: 4,
+		},
+		&calculatorpb.ComputeAverageRequest{
+			Number: 5,
+		},
+	}
+
+	for _, num := range request {
+		fmt.Println("Sending number ", num)
+		stream.Send(num)
+		time.Sleep(1000 * time.Millisecond)
+	}
+
+	avg, err:=stream.CloseAndRecv()
+	if err != nil {
+		log.Fatal("Could not connect to grpc!", err)
+	}
+
+	fmt.Printf("Average %v", avg.GetAverage())
+
 }

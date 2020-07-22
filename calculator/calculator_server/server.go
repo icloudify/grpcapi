@@ -5,11 +5,32 @@ import (
 	"fmt"
 	"github.com/ravindra031/grpcapi/calculator/calculatorpb"
 	"google.golang.org/grpc"
+	"io"
 	"log"
 	"net"
 )
 
 type server struct {
+}
+
+func (s *server) ComputeAverage(averageServer calculatorpb.CalculatorService_ComputeAverageServer) error {
+	fmt.Println("Received ComputeAverage....")
+	number := int32(0)
+	count := int32(0)
+	for {
+		rec, err := averageServer.Recv()
+		if err == io.EOF {
+			// we have finished reading the client stream
+			fmt.Printf("total %v and count %v\n",number,count)
+			return averageServer.SendAndClose(&calculatorpb.ComputeAverageResponse {
+				Average: float64(number / count),
+			})
+		}
+		number = number + rec.GetNumber()
+		count++
+	}
+
+	return nil
 }
 
 func (*server) Sum(ctx context.Context, in *calculatorpb.SumRequest) (*calculatorpb.SumResponse, error) {
@@ -33,10 +54,10 @@ func (*server) PrimeNumberDecomposition(req *calculatorpb.PrimeNumberDecompositi
 			stream.Send(&calculatorpb.PrimeNumberDecompositionResponse{
 				PrimeFactor: divisor,
 			})
-			number = number/divisor
+			number = number / divisor
 		} else {
 			divisor++
-			fmt.Println("Divisor has increaseed to%v",divisor)
+			fmt.Println("Divisor has increaseed to%v", divisor)
 		}
 	}
 
