@@ -42,7 +42,7 @@ func doBiDiStreaming(c calculatorpb.CalculatorServiceClient) {
 			Number: 2,
 		},
 		&calculatorpb.FindMaximumRequest{
-			Number: 3,
+			Number: 11,
 		},
 		&calculatorpb.FindMaximumRequest{
 			Number: 4,
@@ -56,7 +56,6 @@ func doBiDiStreaming(c calculatorpb.CalculatorServiceClient) {
 
 	// send go routine
 	go func() {
-		//numbers := []int32{4, 7, 2, 19, 4, 6, 32}
 		for _, number := range request {
 			fmt.Printf("Sending number: %v\n", number)
 			stream.Send(number)

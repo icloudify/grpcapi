@@ -20,12 +20,14 @@ func (s *server) FindMaximum(stream calculatorpb.CalculatorService_FindMaximumSe
 		rec, err := stream.Recv()
 
 		if err == io.EOF {
-			return stream.Send(&calculatorpb.FindMaximumResponse{
+			fmt.Printf("********************\nFinal Max rceived %v\n********************\n", max)
+			return stream.Send(&calculatorpb.FindMaximumResponse {
 				Maximum: max,
 			})
 		}
 		if max < rec.GetNumber() {
 			max = rec.GetNumber()
+			fmt.Println("New Max rceived ", max)
 		}
 	}
 
