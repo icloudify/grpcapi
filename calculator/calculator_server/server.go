@@ -16,12 +16,31 @@ func (*server) Sum(ctx context.Context, in *calculatorpb.SumRequest) (*calculato
 	log.Println("Calculator function called")
 	fn := in.GetFirstNumber()
 	sn := in.GetSecondNumber()
-	result := fn+sn
+	result := fn + sn
 
 	res := calculatorpb.SumResponse{
 		Result: result,
 	}
 	return &res, nil
+}
+
+func (*server) PrimeNumberDecomposition(req *calculatorpb.PrimeNumberDecompositionRequest, stream calculatorpb.CalculatorService_PrimeNumberDecompositionServer) error {
+	fmt.Println("Received PrimeNumberDecomposition %v", req)
+	number := req.GetNumber()
+	divisor := int64(2)
+	for number > 1 {
+		if number%divisor == 0 {
+			stream.Send(&calculatorpb.PrimeNumberDecompositionResponse{
+				PrimeFactor: divisor,
+			})
+			number = number/divisor
+		} else {
+			divisor++
+			fmt.Println("Divisor has increaseed to%v",divisor)
+		}
+	}
+
+	return nil
 }
 
 func main() {
