@@ -5,12 +5,32 @@ import (
 	"fmt"
 	"github.com/ravindra031/grpcapi/calculator/calculatorpb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"io"
 	"log"
+	"math"
 	"net"
 )
 
 type server struct {
+}
+
+func (s *server) SquareRoot(ctx context.Context, request *calculatorpb.SquareRootRequest) (*calculatorpb.SquareRootResponse, error) {
+	fmt.Println("Received request for square root....")
+
+	if request.GetNumber() < 1 {
+		return nil, status.Errorf(
+			codes.InvalidArgument,
+			fmt.Sprintf("Received a negative number %v\n", request.GetNumber()),
+		)
+	}
+	sroot := math.Sqrt(float64(request.GetNumber()))
+	resp := &calculatorpb.SquareRootResponse{
+		NumberRoot: sroot,
+	}
+
+	return resp, nil
 }
 
 func (s *server) FindMaximum(stream calculatorpb.CalculatorService_FindMaximumServer) error {
@@ -21,7 +41,7 @@ func (s *server) FindMaximum(stream calculatorpb.CalculatorService_FindMaximumSe
 
 		if err == io.EOF {
 			fmt.Printf("********************\nFinal Max rceived %v\n********************\n", max)
-			return stream.Send(&calculatorpb.FindMaximumResponse {
+			return stream.Send(&calculatorpb.FindMaximumResponse{
 				Maximum: max,
 			})
 		}
@@ -85,7 +105,7 @@ func (*server) PrimeNumberDecomposition(req *calculatorpb.PrimeNumberDecompositi
 }
 
 func main() {
-	fmt.Println("Hello world!")
+	fmt.Println("***********************\n       GRPC Server       \n***********************\n")
 	lis, err := net.Listen("tcp", "0.0.0.0:50051")
 
 	if err != nil {
