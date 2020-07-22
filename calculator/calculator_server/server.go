@@ -13,6 +13,24 @@ import (
 type server struct {
 }
 
+func (s *server) FindMaximum(stream calculatorpb.CalculatorService_FindMaximumServer) error {
+	fmt.Println("Received FindMaximum....")
+	max := int32(0)
+	for {
+		rec, err := stream.Recv()
+
+		if err == io.EOF {
+			return stream.Send(&calculatorpb.FindMaximumResponse{
+				Maximum: max,
+			})
+		}
+		if max < rec.GetNumber() {
+			max = rec.GetNumber()
+		}
+	}
+
+}
+
 func (s *server) ComputeAverage(averageServer calculatorpb.CalculatorService_ComputeAverageServer) error {
 	fmt.Println("Received ComputeAverage....")
 	number := int32(0)
@@ -21,8 +39,8 @@ func (s *server) ComputeAverage(averageServer calculatorpb.CalculatorService_Com
 		rec, err := averageServer.Recv()
 		if err == io.EOF {
 			// we have finished reading the client stream
-			fmt.Printf("total %v and count %v\n",number,count)
-			return averageServer.SendAndClose(&calculatorpb.ComputeAverageResponse {
+			fmt.Printf("total %v and count %v\n", number, count)
+			return averageServer.SendAndClose(&calculatorpb.ComputeAverageResponse{
 				Average: float64(number / count),
 			})
 		}

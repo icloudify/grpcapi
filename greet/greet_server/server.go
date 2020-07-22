@@ -15,6 +15,35 @@ import (
 type server struct {
 }
 
+func (s *server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) error {
+	fmt.Printf("GreetEveryone function was invoked with \n")
+
+	for {
+		res, err := stream.Recv()
+
+		if err == io.EOF {
+			return nil
+		}
+
+		if err != nil {
+			log.Fatalf("Error while receiveing stream: %v", err)
+			return err
+		}
+
+		fname := res.GetGreeting().GetFirstName()
+		result := "hello " + fname + "!"
+		error := stream.Send(&greetpb.GreetEveryoneResponse{
+			Result: result,
+		})
+
+		if error != nil {
+			log.Fatalf("Error while sending on stream: %v", err)
+			return error
+		}
+
+	}
+}
+
 func (*server) Greet(ctx context.Context, in *greetpb.GreetRequest) (*greetpb.GreetResponse, error) {
 	log.Println("Greet function called")
 	fname := in.GetGreeting().GetFirstName()
@@ -28,7 +57,7 @@ func (*server) Greet(ctx context.Context, in *greetpb.GreetRequest) (*greetpb.Gr
 }
 
 func (*server) GreetManyTimes(req *greetpb.GreetManyTimesRequest, stream greetpb.GreetService_GreetManyTimesServer) error {
-	fmt.Printf("GreetManyTimes function was invoked with %v\n", req)
+	fmt.Printf("GreetManyTimes function was invoked with %v\n", req.GetGreeting().GetFirstName())
 	firstName := req.GetGreeting().GetFirstName()
 	for i := 0; i < 10; i++ {
 		result := "Hello " + firstName + " number " + strconv.Itoa(i)
@@ -57,7 +86,7 @@ func (*server) LongGreet(stream greetpb.GreetService_LongGreetServer) error {
 		}
 
 		firstName := req.GetGreeting().GetFirstName()
-		result += "Hello " + firstName + "! "
+		result += "Hello " + firstName + "!"
 	}
 }
 
