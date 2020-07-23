@@ -6,6 +6,7 @@ import (
 	"github.com/ravindra031/grpcapi/greet/greetpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 	"io"
 	"log"
@@ -13,20 +14,32 @@ import (
 )
 
 func main() {
-	conn, err := grpc.Dial("localhost:50052", grpc.WithInsecure())
+	opts := grpc.WithInsecure()
+	isTls := false
+	//conn, err := grpc.Dial("localhost:50052", grpc.WithInsecure())
+	if isTls {
+		certFile := "ssl/ca.crt"
+		creds, err := credentials.NewClientTLSFromFile(certFile, "")
+		if err != nil {
+			log.Fatal("SSL authentication failed while loading certificate!", err)
+			return
+		}
+		opts = grpc.WithTransportCredentials(creds)
+	}
 
+	conn, err := grpc.Dial("localhost:50051", opts)
 	if err != nil {
 		log.Fatal("Could not connect to grpc!", err)
 	}
 
 	defer conn.Close()
 	c := greetpb.NewGreetServiceClient(conn)
-	//doUnary(c)
+	doUnary(c)
 	//doServerStreaming(c)
 	//doClientStreaming(c)
 	//doBiDiStreaming(c)
-	doUnaryWithDeadline(c, 5*time.Second)
-	doUnaryWithDeadline(c, 1*time.Second)
+	//doUnaryWithDeadline(c, 5*time.Second)
+	//doUnaryWithDeadline(c, 1*time.Second)
 }
 func doBiDiStreaming(c greetpb.GreetServiceClient) {
 	fmt.Println("Starting to do a BiDi Streaming RPC...")
