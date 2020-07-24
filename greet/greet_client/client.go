@@ -41,6 +41,7 @@ func main() {
 	//doUnaryWithDeadline(c, 5*time.Second)
 	//doUnaryWithDeadline(c, 1*time.Second)
 }
+
 func doBiDiStreaming(c greetpb.GreetServiceClient) {
 	fmt.Println("Starting to do a BiDi Streaming RPC...")
 	stream, err := c.GreetEveryone(context.Background())

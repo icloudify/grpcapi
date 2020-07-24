@@ -118,7 +118,7 @@ func main() {
 
 	// Register reflection service on gRPC server.
 	reflection.Register(s)
-	
+
 	if err := s.Serve(lis); err != nil {
 		log.Fatal("Error occured!")
 	}
